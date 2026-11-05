@@ -1,4 +1,7 @@
 {
   "framework": "vite",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/cms/:path*", "destination": "https://nordicaffairsmedia.com/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

@@ -25,3 +25,8 @@ Static site (Vercel / Render / Netlify). `vercel.json` and `public/_redirects` a
 ## Notes
 - English only. Reserved-seating events open the main website (no seat map here).
 - Sales/refund statistics are intentionally not in this public app; keep them behind `/staff` login.
+
+## Events without CORS (Vercel)
+`vercel.json` forwards `/cms/*` to the website, so the browser reads events from the app's own address (no CORS needed).
+Set `VITE_CMS_URL=/cms` on Vercel (instead of the full website address) and redeploy.
+If your website address is not `https://nordicaffairsmedia.com`, change the `destination` in `vercel.json`.
