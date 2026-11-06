@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchPastEvents, type PastEvent } from '../lib/api'
 import { Icon } from './ui'
 
-/** Showcase of past concerts. Pictures come from the Media library (ticked "Show in the app as a past event"); not for booking. */
+/** Past concerts, one under another. Pictures come from the Media library (ticked "Show in the app as a past event"); not for booking. */
 export function PastEvents() {
   const [items, setItems] = useState<PastEvent[]>([])
   const [open, setOpen] = useState<PastEvent | null>(null)
@@ -27,16 +27,15 @@ export function PastEvents() {
   return (
     <section className="pb-space-lg">
       <div className="px-gutter pb-space-sm pt-space-xs">
-        <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary">Showcase</span>
         <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Past Events</h3>
       </div>
-      <div className="no-scrollbar flex snap-x snap-mandatory gap-space-sm overflow-x-auto px-gutter pb-1">
+      <div className="flex flex-col gap-space-md px-gutter">
         {items.map((it) => (
           <button
             key={it.id}
             type="button"
             onClick={() => setOpen(it)}
-            className="w-[82%] flex-shrink-0 snap-center overflow-hidden rounded-xl bg-surface-container text-left shadow-lg transition-transform active:scale-[0.98]"
+            className="w-full overflow-hidden rounded-xl bg-surface-container text-left shadow-lg transition-transform active:scale-[0.98]"
           >
             <div className="aspect-video w-full bg-surface-container-high">
               <img src={it.thumb} alt={it.caption} loading="lazy" className="h-full w-full object-cover" />
