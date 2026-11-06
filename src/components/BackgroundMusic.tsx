@@ -4,7 +4,7 @@ import { fetchMusicUrl } from '../lib/api'
 const KEY = 'nam-music'
 
 /**
- * Background music, the same track as the website (the one ticked "Play on the website" in the admin).
+ * Background music of the app: the track ticked "Play in the ticketing app" in the admin (Background music).
  * Phones block sound until the first tap, so it starts on the first touch; the round button
  * at the bottom left pauses and resumes it and remembers the choice.
  */
@@ -117,7 +117,7 @@ function Player({ src }: { src: string }) {
   )
 }
 
-/** Waits for the page to finish loading, then looks up the track. No track set in the admin = no player, no button. */
+/** Waits for the page to finish loading, then looks up the track ticked "Play in the ticketing app" in the admin. None ticked = no player, no button. */
 export function BackgroundMusic() {
   const [src, setSrc] = useState<string | null>(null)
   useEffect(() => {
