@@ -118,21 +118,22 @@ export default function EventDetails() {
       />
       <main className={`${COLUMN} pb-40 pt-16`}>
         <section className="px-gutter pt-space-sm">
-          <div className="relative overflow-hidden rounded-xl bg-surface-container-low shadow-xl">
-            <Poster src={event.poster} title={event.title} className="aspect-[4/5] w-full" />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-transparent" />
-            {event.startsAt ? (
-              <div className="absolute left-3 top-3 flex h-14 w-12 flex-col items-center justify-center rounded-lg bg-surface-container-lowest/90 text-center shadow-md backdrop-blur-md">
-                <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">{monthShort(event.startsAt)}</span>
-                <span className="font-headline-sm text-headline-sm font-bold leading-tight text-primary">{dayNum(event.startsAt)}</span>
-              </div>
-            ) : null}
-            <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-space-md">
-              {event.category ? (
-                <span className="font-label-sm text-label-sm uppercase tracking-widest text-secondary">{event.category}</span>
+          <div className="overflow-hidden rounded-xl bg-surface-container-low shadow-xl">
+            <Poster src={event.poster} title={event.title} className="aspect-video w-full" />
+            <div className="flex items-start gap-space-sm p-space-md">
+              {event.startsAt ? (
+                <div className="flex h-14 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-surface-container-lowest text-center shadow-md">
+                  <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">{monthShort(event.startsAt)}</span>
+                  <span className="font-headline-sm text-headline-sm font-bold leading-tight text-primary">{dayNum(event.startsAt)}</span>
+                </div>
               ) : null}
-              <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">{event.title}</h1>
-              {event.summary ? <p className="font-body-sm text-body-sm text-on-surface-variant">{event.summary}</p> : null}
+              <div className="flex min-w-0 flex-col gap-1">
+                {event.category ? (
+                  <span className="font-label-sm text-label-sm uppercase tracking-widest text-secondary">{event.category}</span>
+                ) : null}
+                <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">{event.title}</h1>
+                {event.summary ? <p className="font-body-sm text-body-sm text-on-surface-variant">{event.summary}</p> : null}
+              </div>
             </div>
           </div>
         </section>
