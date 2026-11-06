@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EventCard, FeaturedCard } from '../components/EventCards'
 import { Page } from '../components/Layout'
+import { PastEvents } from '../components/PastEvents'
 import { Chip, GoldButton, Icon, Loading, Notice } from '../components/ui'
 import { configured, SITE_URL } from '../lib/config'
 import { isOnSale, matches } from '../lib/events'
@@ -157,6 +158,8 @@ export default function Discover() {
           ) : null}
         </>
       )}
+
+      <PastEvents />
 
       {SITE_URL ? (
         <div className="px-gutter pb-space-lg">

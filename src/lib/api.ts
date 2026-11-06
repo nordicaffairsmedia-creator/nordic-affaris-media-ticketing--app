@@ -63,6 +63,38 @@ export async function fetchMusicUrl(): Promise<string | null> {
   }
 }
 
+/** A past-event poster shown in the app as a showcase (not for booking). */
+export type PastEvent = { id: string; thumb: string; full: string; caption: string }
+
+/** Pictures ticked "Show in the app as a past event" in the website's Media library. */
+export async function fetchPastEvents(): Promise<PastEvent[]> {
+  const get = async (sort: string) => {
+    const res = await fetch(`${CMS_URL}/api/media?where[showInApp][equals]=true&sort=${sort}&limit=40&depth=0&locale=en`)
+    if (!res.ok) throw new Error('media')
+    return (await res.json()) as { docs?: Rec[] }
+  }
+  try {
+    let data: { docs?: Rec[] }
+    try {
+      data = await get('_order')
+    } catch {
+      data = await get('-createdAt')
+    }
+    const out: PastEvent[] = []
+    for (const d of data.docs ?? []) {
+      const sizes = rec(d.sizes)
+      const base = str(d.url)
+      const thumb = str(rec(sizes.card).url) || base
+      const full = str(rec(sizes.feature).url) || base
+      if (!thumb) continue
+      out.push({ id: str(d.id), thumb: abs(thumb), full: abs(full || thumb), caption: str(d.caption) || str(d.alt) })
+    }
+    return out
+  } catch {
+    return []
+  }
+}
+
 /** Payload stores descriptions as Lexical JSON; we only need readable paragraphs. */
 function lexicalParagraphs(desc: unknown): string[] {
   const out: string[] = []
