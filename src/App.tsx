@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import { BackgroundMusic } from './components/BackgroundMusic'
 import { Page } from './components/Layout'
 import { Notice } from './components/ui'
 import { EventsProvider } from './lib/EventsContext'
@@ -55,6 +56,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <BackgroundMusic />
       <EventsProvider>
         <Routes>
           <Route path="/" element={<Home />} />

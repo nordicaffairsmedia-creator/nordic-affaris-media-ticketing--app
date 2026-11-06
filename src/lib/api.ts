@@ -50,6 +50,19 @@ function posterUrl(p: unknown): string | null {
   return url ? abs(url) : null
 }
 
+/** The website's background music: the track ticked "Play on the website" in the admin (null = none). */
+export async function fetchMusicUrl(): Promise<string | null> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/music?where[active][equals]=true&sort=-updatedAt&limit=1&depth=0`)
+    if (!res.ok) return null
+    const data = (await res.json()) as { docs?: Rec[] }
+    const url = str(rec(data.docs?.[0]).url)
+    return url ? abs(url) : null
+  } catch {
+    return null
+  }
+}
+
 /** Payload stores descriptions as Lexical JSON; we only need readable paragraphs. */
 function lexicalParagraphs(desc: unknown): string[] {
   const out: string[] = []
