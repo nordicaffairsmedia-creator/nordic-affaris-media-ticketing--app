@@ -92,7 +92,7 @@ export function normaliseEvent(d: Rec): EventItem {
     title: str(d.title),
     summary: str(d.summary),
     description: lexicalParagraphs(d.description),
-    poster: posterUrl(d.poster),
+    poster: posterUrl(d.appPoster) ?? posterUrl(d.poster),
     startsAt: str(d.startsAt) || null,
     endsAt: str(d.endsAt) || null,
     salesStatus: status,
