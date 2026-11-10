@@ -94,3 +94,15 @@ export const getVisitor = (): Visitor | null => {
 }
 
 export const setVisitor = (v: Visitor | null) => write(VISITOR_KEY, v ? JSON.stringify(v) : null)
+
+/** Full app sign out: forget the details and ticket session, then start again from the details page. */
+export function signOutApp() {
+  setVisitor(null)
+  write(SESSION_KEY, null)
+  try {
+    sessionStorage.removeItem('nam.welcomed')
+  } catch {
+    /* ignore */
+  }
+  window.location.replace('/')
+}

@@ -5,7 +5,7 @@ import { GoldButton, Icon, Loading, Notice } from '../components/ui'
 import { errorText, fetchOrder, myOrders, requestCode, signOutRemote, verifyCode } from '../lib/api'
 import { configured } from '../lib/config'
 import { isUpcoming } from '../lib/format'
-import { setSession, useSession } from '../lib/storage'
+import { getVisitor, setSession, signOutApp, useSession } from '../lib/storage'
 import type { PublicOrder } from '../lib/types'
 
 const field =
@@ -127,6 +127,32 @@ function OrderBlock({ summary, token, open: initiallyOpen }: { summary: PublicOr
   )
 }
 
+/** Who is using the app, with the sign out that returns to the details page. */
+function AccountCard() {
+  const v = getVisitor()
+  if (!v) return null
+  return (
+    <div className="mx-gutter mt-space-md flex items-center justify-between gap-space-sm rounded-2xl bg-surface-container p-space-sm">
+      <div className="flex min-w-0 items-center gap-space-sm">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15 font-label-lg text-label-lg uppercase text-primary">{v.name.trim().charAt(0) || '?'}</span>
+        <div className="min-w-0">
+          <p className="truncate font-label-lg text-label-lg text-on-surface">{v.name}</p>
+          <p className="truncate font-body-sm text-body-sm text-on-surface-variant">{v.email}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          if (window.confirm('Sign out? You will need to enter your details again.')) signOutApp()
+        }}
+        className="shrink-0 rounded-lg border border-primary/50 px-3 py-2 font-label-md text-label-md text-primary active:scale-95"
+      >
+        Sign out
+      </button>
+    </div>
+  )
+}
+
 export default function Tickets() {
   const session = useSession()
   const [orders, setOrders] = useState<PublicOrder[] | null>(null)
@@ -159,6 +185,7 @@ export default function Tickets() {
   if (!session)
     return (
       <Page title="My Bookings">
+        <AccountCard />
         <div className="px-gutter pt-space-md">
           <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Concierge Gate Access</span>
           <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">My Bookings & Passes</h1>
@@ -174,6 +201,7 @@ export default function Tickets() {
 
   return (
     <Page title="My Bookings">
+      <AccountCard />
       <div className="flex flex-col gap-space-lg px-gutter pt-space-xs">
         <div className="flex flex-col gap-space-xs pt-space-md">
           <div className="flex items-center justify-between">
