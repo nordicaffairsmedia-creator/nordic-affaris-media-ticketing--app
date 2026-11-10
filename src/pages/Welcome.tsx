@@ -35,7 +35,6 @@ export default function Welcome({ onDone }: { onDone: () => void }) {
           <span className="font-label-md text-label-md uppercase tracking-[0.3em] text-secondary">Welcome to</span>
           <h1 className="font-headline-xl-mobile text-headline-xl-mobile text-on-surface">Nordic Affairs Media</h1>
           <div className="my-1 h-px w-16 bg-gradient-to-r from-transparent via-primary to-transparent" />
-          <p className="font-headline-sm text-headline-sm text-primary">Events Ticket Booking</p>
         </div>
 
         <div className="welcome-rise mt-2 h-0.5 w-24 overflow-hidden rounded-full bg-surface-container-high" style={{ animationDelay: '300ms' }} aria-hidden>
