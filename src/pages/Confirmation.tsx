@@ -1,3 +1,4 @@
+import { rememberOrder } from '../lib/storage'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { COLUMN, DetailHeader } from '../components/Layout'
@@ -30,6 +31,7 @@ export default function Confirmation() {
           const o = await fetchOrder(ref, { t })
           if (!live) return
           setOrder(o)
+          if (o.status === 'paid') rememberOrder(ref, t)
           if (o.status !== 'pending' || ++tries >= 8) return
           await new Promise((r) => setTimeout(r, 2000))
           if (!live) return

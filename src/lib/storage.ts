@@ -93,16 +93,40 @@ export const getVisitor = (): Visitor | null => {
   return null
 }
 
-export const setVisitor = (v: Visitor | null) => write(VISITOR_KEY, v ? JSON.stringify(v) : null)
+export const setVisitor = (v: Visitor | null) => {
+  write(VISITOR_KEY, v ? JSON.stringify(v) : null)
+  window.dispatchEvent(new Event('nam-visitor'))
+}
 
 /** Full app sign out: forget the details and ticket session, then start again from the details page. */
 export function signOutApp() {
   setVisitor(null)
   write(SESSION_KEY, null)
+  write(ORDERS_KEY, null)
   try {
     sessionStorage.removeItem('nam.welcomed')
   } catch {
     /* ignore */
   }
   window.location.replace('/')
+}
+
+// ---------------------------------------------------------------- bookings made on this device
+
+const ORDERS_KEY = 'nam.orders'
+export type LocalOrder = { ref: string; t: string }
+
+export const getLocalOrders = (): LocalOrder[] => {
+  try {
+    const v = JSON.parse(read(ORDERS_KEY) ?? '[]')
+    return Array.isArray(v) ? v.filter((o) => o && typeof o.ref === 'string' && typeof o.t === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+/** Called when a booking is confirmed, so "My Bookings" can show it without asking for an email code. */
+export function rememberOrder(ref: string, t: string) {
+  const all = getLocalOrders().filter((o) => o.ref !== ref)
+  write(ORDERS_KEY, JSON.stringify([{ ref, t }, ...all].slice(0, 50)))
 }
