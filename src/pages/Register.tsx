@@ -67,9 +67,9 @@ export default function Register({ onDone, intro = false }: { onDone: (v: Visito
 
       {/* brand: starts in the middle of the screen, then glides to the top */}
       <div
-        className="relative flex h-[12.5rem] w-full flex-col items-center justify-start gap-3 text-center"
+        className="relative flex h-[9.5rem] w-full flex-col items-center justify-start gap-3 text-center"
         style={{
-          transform: show ? 'translateY(0) scale(1)' : 'translateY(calc(50dvh - 9.75rem)) scale(1.18)',
+          transform: show ? 'translateY(0) scale(1)' : 'translateY(calc(50dvh - 8.25rem)) scale(1.18)',
           transition: reduce ? 'none' : 'transform 900ms cubic-bezier(.65,0,.25,1)',
         }}
       >
@@ -80,14 +80,13 @@ export default function Register({ onDone, intro = false }: { onDone: (v: Visito
           <span className="font-label-md text-label-md uppercase tracking-[0.3em] text-secondary">Welcome to</span>
           <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Nordic Affairs Media</h1>
           <div className="my-0.5 h-px w-16 bg-gradient-to-r from-transparent via-primary to-transparent" />
-          <p className="font-headline-sm text-headline-sm text-primary">Events Ticket Booking</p>
         </div>
       </div>
 
       <form onSubmit={submit} noValidate aria-hidden={!show} className="relative mt-space-md flex w-full flex-col gap-space-sm rounded-xl bg-surface-container-low p-space-md shadow-xl" style={rise(0)}>
-        <p className="text-center font-body-md text-body-md text-on-surface-variant" style={rise(1)}>
-          Tell us a little about you to enter the app.
-        </p>
+        <h2 className="text-center font-headline-md text-headline-md text-on-surface" style={rise(1)}>
+          Sign up
+        </h2>
         <label className="flex flex-col gap-1" style={rise(2)}>
           <span className="font-label-md text-label-md text-on-surface-variant">Name</span>
           <input className={input} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={80} tabIndex={show ? 0 : -1} />
@@ -138,7 +137,7 @@ export default function Register({ onDone, intro = false }: { onDone: (v: Visito
           style={rise(6)}
           className="mt-1 h-12 w-full rounded-lg bg-primary font-label-lg text-label-lg text-on-primary shadow-[0_4px_16px_rgba(212,175,55,0.35)] active:scale-[0.98] disabled:opacity-60"
         >
-          {busy ? 'Please wait…' : 'Enter'}
+          {busy ? 'Please wait…' : 'Sign up'}
         </button>
       </form>
     </main>
