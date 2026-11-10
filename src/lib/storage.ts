@@ -74,3 +74,23 @@ export function useSession() {
   }, [])
   return session
 }
+
+// ---------------------------------------------------------------- visitor details (asked once, before the app opens)
+
+const VISITOR_KEY = 'nam.visitor'
+
+export type Visitor = { name: string; email: string; dial: string; phone: string; sent: boolean }
+
+export const getVisitor = (): Visitor | null => {
+  try {
+    const v = JSON.parse(read(VISITOR_KEY) ?? 'null')
+    if (v && typeof v.name === 'string' && typeof v.email === 'string') {
+      return { name: v.name, email: v.email, dial: String(v.dial ?? '+46'), phone: String(v.phone ?? ''), sent: Boolean(v.sent) }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
+export const setVisitor = (v: Visitor | null) => write(VISITOR_KEY, v ? JSON.stringify(v) : null)

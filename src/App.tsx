@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { BackgroundMusic } from './components/BackgroundMusic'
 import { Page } from './components/Layout'
@@ -11,7 +11,10 @@ import Discover from './pages/Discover'
 import EventDetails from './pages/EventDetails'
 import Saved from './pages/Saved'
 import Tickets from './pages/Tickets'
+import Register from './pages/Register'
 import Welcome from './pages/Welcome'
+import { registerVisitor } from './lib/api'
+import { getVisitor, setVisitor, type Visitor } from './lib/storage'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -27,6 +30,27 @@ function StripLocale() {
   const { search } = useLocation()
   return <Navigate to={`/${rest}${search}`} replace />
 }
+
+/** Visitors give name, email and mobile once, before the app opens. The payment return page is never blocked. */
+function Gate({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
+  const [visitor, setV] = useState<Visitor | null>(getVisitor)
+  useEffect(() => {
+    // details that could not be sent last time (no network): try again now
+    if (!visitor || visitor.sent) return
+    registerVisitor({ name: visitor.name, email: visitor.email, phone: `${visitor.dial}${visitor.phone}` }).then((ok) => {
+      if (!ok) return
+      const done = { ...visitor, sent: true }
+      setVisitor(done)
+      setV(done)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  if (visitor || pathname.startsWith('/booking/confirmation')) return <>{children}</>
+  return <Register onDone={setV} />
+}
+
+const guard = (el: ReactNode) => <Gate>{el}</Gate>
 
 const WELCOME_KEY = 'nam.welcomed'
 const seenWelcome = () => {
@@ -48,7 +72,7 @@ function Home() {
     }
     setEntered(true)
   }, [])
-  if (entered) return <Discover />
+  if (entered) return guard(<Discover />)
   return <Welcome onDone={done} />
 }
 
@@ -60,12 +84,12 @@ export default function App() {
       <EventsProvider>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/events" element={<Calendar />} />
-          <Route path="/events/:slug" element={<EventDetails />} />
-          <Route path="/events/:slug/checkout" element={<Checkout />} />
+          <Route path="/events" element={guard(<Calendar />)} />
+          <Route path="/events/:slug" element={guard(<EventDetails />)} />
+          <Route path="/events/:slug/checkout" element={guard(<Checkout />)} />
           <Route path="/booking/confirmation" element={<Confirmation />} />
-          <Route path="/tickets" element={<Tickets />} />
-          <Route path="/saved" element={<Saved />} />
+          <Route path="/tickets" element={guard(<Tickets />)} />
+          <Route path="/saved" element={guard(<Saved />)} />
           {['en', 'sv', 'ta', 'ml'].map((l) => (
             <Route key={l} path={`/${l}/*`} element={<StripLocale />} />
           ))}

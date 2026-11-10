@@ -7,6 +7,7 @@ import { SITE_URL } from '../lib/config'
 import { COUNTRIES, countryName } from '../lib/countries'
 import { dateWithWeekday, money, moneyMinor, timeOf } from '../lib/format'
 import { useEvents } from '../lib/EventsContext'
+import { getVisitor } from '../lib/storage'
 import type { Availability, Quote, ServiceKey } from '../lib/types'
 
 type Step = 'tickets' | 'buyer' | 'services' | 'payment'
@@ -53,10 +54,11 @@ export default function Checkout() {
   const [quoteError, setQuoteError] = useState('')
   const [services, setServices] = useState<Record<ServiceKey, boolean>>({ smsTickets: false, refundProtection: false, reminder: false })
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [dial, setDial] = useState('+46')
-  const [phone, setPhone] = useState('')
+  const visitor = getVisitor()
+  const [name, setName] = useState(visitor?.name ?? '')
+  const [email, setEmail] = useState(visitor?.email ?? '')
+  const [dial, setDial] = useState(visitor?.dial ?? '+46')
+  const [phone, setPhone] = useState(visitor?.phone ?? '')
   const [country, setCountry] = useState('SE')
   const [postal, setPostal] = useState('')
   const [company, setCompany] = useState(false)

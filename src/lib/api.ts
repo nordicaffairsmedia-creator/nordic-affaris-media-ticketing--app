@@ -50,6 +50,27 @@ function posterUrl(p: unknown): string | null {
   return url ? abs(url) : null
 }
 
+/** Sends the visitor's details to the website's admin (Inbox → App sign-ups). true = stored (or already known). */
+export async function registerVisitor(v: { name: string; email: string; phone: string }): Promise<boolean> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/app-registrations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: v.name, email: v.email, phone: v.phone, locale: 'en', consentAt: new Date().toISOString() }),
+    })
+    if (res.ok) return true
+    // 400 = this email is already registered: nothing more to do.
+    if (res.status === 400) {
+      const body = (await res.json().catch(() => ({}))) as { errors?: { message?: string; data?: { errors?: { path?: string }[] } }[] }
+      const dup = JSON.stringify(body).toLowerCase().includes('email')
+      return dup
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
 /** The app's background music: the track ticked "Play in the ticketing app" in the admin (null = none). */
 export async function fetchMusicUrl(): Promise<string | null> {
   try {
