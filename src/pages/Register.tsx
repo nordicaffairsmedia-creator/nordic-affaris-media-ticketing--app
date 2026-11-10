@@ -84,9 +84,6 @@ export default function Register({ onDone, intro = false }: { onDone: (v: Visito
       </div>
 
       <form onSubmit={submit} noValidate aria-hidden={!show} className="relative mt-space-md flex w-full flex-col gap-space-sm rounded-xl bg-surface-container-low p-space-md shadow-xl" style={rise(0)}>
-        <h2 className="text-center font-headline-md text-headline-md text-on-surface" style={rise(1)}>
-          Sign up
-        </h2>
         <label className="flex flex-col gap-1" style={rise(2)}>
           <span className="font-label-md text-label-md text-on-surface-variant">Name</span>
           <input className={input} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={80} tabIndex={show ? 0 : -1} />
