@@ -72,7 +72,10 @@ function Home() {
     }
     setEntered(true)
   }, [])
+  const [known] = useState(() => getVisitor() !== null)
   if (entered) return guard(<Discover />)
+  // first visit: logo and welcome, then the details form rise in on the same screen
+  if (!known) return <Register intro onDone={done} />
   return <Welcome onDone={done} />
 }
 
