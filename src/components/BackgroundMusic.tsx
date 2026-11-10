@@ -99,8 +99,8 @@ function Player({ src }: { src: string }) {
         onClick={toggle}
         aria-label={on ? 'Pause background music' : 'Play background music'}
         aria-pressed={on}
-        className="fixed left-4 z-[45] grid h-11 w-11 place-items-center rounded-full border border-white/50 bg-surface-container/90 text-white shadow-lg backdrop-blur-md active:scale-95"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 5.75rem)' }}
+        className="fixed z-[60] grid h-10 w-10 place-items-center rounded-full border border-white/50 bg-surface-container/90 text-white shadow-lg backdrop-blur-md active:scale-95"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 0.875rem)', right: 'max(4.75rem, calc(50% - 13.25rem))' }}
       >
         {on ? (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
