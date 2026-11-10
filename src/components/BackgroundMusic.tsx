@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchMusicUrl } from '../lib/api'
+import { getVisitor } from '../lib/storage'
 
 const KEY = 'nam-music'
 
@@ -120,7 +121,15 @@ function Player({ src }: { src: string }) {
 /** Waits for the page to finish loading, then looks up the track ticked "Play in the ticketing app" in the admin. None ticked = no player, no button. */
 export function BackgroundMusic() {
   const [src, setSrc] = useState<string | null>(null)
+  // the music and its button only exist once the visitor has entered their details
+  const [entered, setEntered] = useState(() => getVisitor() !== null)
   useEffect(() => {
+    const on = () => setEntered(getVisitor() !== null)
+    window.addEventListener('nam-visitor', on)
+    return () => window.removeEventListener('nam-visitor', on)
+  }, [])
+  useEffect(() => {
+    if (!entered) return
     let alive = true
     const go = () => {
       fetchMusicUrl().then((u) => alive && setSrc(u))
@@ -130,6 +139,6 @@ export function BackgroundMusic() {
       alive = false
       clearTimeout(t)
     }
-  }, [])
-  return src ? <Player key={src} src={src} /> : null
+  }, [entered])
+  return entered && src ? <Player key={src} src={src} /> : null
 }
