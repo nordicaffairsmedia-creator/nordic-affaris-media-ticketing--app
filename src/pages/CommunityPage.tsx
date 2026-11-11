@@ -1,0 +1,162 @@
+import { useEffect } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { ScriptTile } from '../components/CommunityCard'
+import { EventCard } from '../components/EventCards'
+import { CheckIcon, ChatIcon, SpeakerIcon } from '../components/icons'
+import { BottomNav, COLUMN, DetailHeader } from '../components/Layout'
+import { Notice } from '../components/ui'
+import { announceJoin, useCommunities } from '../lib/communities'
+import { useEvents } from '../lib/EventsContext'
+import { isUpcoming } from '../lib/format'
+import { setCommunityTracks, useMusicBus } from '../lib/musicBus'
+import { useJoined } from '../lib/storage'
+
+export default function CommunityPage() {
+  const { slug = '' } = useParams()
+  const list = useCommunities()
+  const c = list.find((x) => x.slug === slug)
+  const { events } = useEvents()
+  const { isJoined, toggle } = useJoined()
+  const bus = useMusicBus()
+
+  // while this page is open, the community's songs replace the app music
+  const songKey = c?.songs.join('|') ?? ''
+  useEffect(() => {
+    if (!c || !c.songs.length) return
+    setCommunityTracks(c.songs)
+    return () => setCommunityTracks(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [songKey])
+
+  if (!c)
+    return (
+      <>
+        <DetailHeader title="Community" />
+        <main className={`${COLUMN} min-h-screen pb-24 pt-16`}>
+          <div className="px-gutter pt-space-lg">
+            <Notice icon="explore_off" title="Community not found">
+              This community is not available. <Link to="/communities" className="text-primary underline">See all communities</Link>
+            </Notice>
+          </div>
+        </main>
+        <BottomNav />
+      </>
+    )
+
+  const joined = isJoined(c.slug)
+  const upcoming = events.filter((e) => e.community === c.slug && isUpcoming(e.startsAt, e.endsAt))
+  const hasSongs = c.songs.length > 0
+
+  return (
+    <>
+      <DetailHeader title={c.name} />
+      <main className={`${COLUMN} min-h-screen pb-24 pt-16`}>
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#1f3560] via-surface-container to-surface px-gutter pb-space-lg pt-space-lg">
+          {c.cover ? <img src={c.cover} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" /> : null}
+          <div aria-hidden className="pointer-events-none absolute -right-6 top-2 select-none text-[8.5rem] font-semibold leading-none text-primary/10">
+            {c.script}
+          </div>
+          <div className="relative flex flex-col gap-space-sm">
+            <ScriptTile c={c} size={56} />
+            <span className="font-label-md text-label-md uppercase tracking-[0.2em] text-secondary">Community</span>
+            <h1 className="font-headline-xl-mobile text-headline-xl-mobile leading-tight text-on-surface">
+              {c.name} <span className="text-primary">Community</span>
+            </h1>
+            {c.description ? <p className="font-body-md text-body-md text-on-surface-variant">{c.description}</p> : null}
+          </div>
+        </section>
+
+        {hasSongs ? (
+          <div className="relative z-10 mx-gutter -mt-space-md flex items-center gap-space-sm rounded-2xl border border-primary/35 bg-surface-container p-space-sm shadow-xl">
+            <div className="flex h-11 w-11 shrink-0 items-end justify-center gap-[3px] rounded-xl bg-gradient-to-br from-primary to-[#a88512] pb-3" aria-hidden>
+              {[18, 26, 14, 22].map((h, i) => (
+                <i
+                  key={i}
+                  className="w-1 origin-bottom rounded-sm bg-[#3c2f00]"
+                  style={{ height: bus.on ? h : 8, transition: 'height .3s', animation: bus.on ? `eq 0.9s ${i * 0.15}s ease-in-out infinite alternate` : 'none' }}
+                />
+              ))}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-label-sm text-label-sm uppercase tracking-[0.14em] text-secondary">{bus.on ? 'Now playing' : 'Paused'}</p>
+              <p className="truncate font-label-lg text-label-lg text-on-surface">{c.name} songs</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => bus.toggle?.()}
+              disabled={!bus.toggle}
+              aria-label={bus.on ? 'Pause the songs' : 'Play the songs'}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/60 text-white active:scale-95 disabled:opacity-40"
+            >
+              {bus.on ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <rect x="6" y="5" width="4" height="14" rx="1" />
+                  <rect x="14" y="5" width="4" height="14" rx="1" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        ) : null}
+
+        <div className="flex gap-space-sm px-gutter pt-space-md">
+          <button
+            type="button"
+            onClick={() => {
+              if (toggle(c.slug)) announceJoin(c)
+            }}
+            className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-lg font-label-lg text-label-lg active:scale-[0.98] ${
+              joined ? 'border-[1.5px] border-primary/60 text-primary' : 'bg-primary text-on-primary shadow-[0_4px_16px_rgba(212,175,55,0.35)]'
+            }`}
+          >
+            {joined ? (
+              <>
+                <CheckIcon width={18} height={18} /> Joined
+              </>
+            ) : (
+              'Join community'
+            )}
+          </button>
+          {c.groupLink ? (
+            <a
+              href={c.groupLink}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border-[1.5px] border-primary/60 font-label-lg text-label-lg text-primary active:scale-[0.98]"
+            >
+              <ChatIcon width={18} height={18} /> Group chat
+            </a>
+          ) : null}
+        </div>
+
+        {c.announcement ? (
+          <div className="mx-gutter mt-space-md flex items-start gap-space-sm rounded-2xl border border-dashed border-primary/35 bg-surface-container-low p-space-sm">
+            <SpeakerIcon className="mt-0.5 shrink-0 text-primary" />
+            <p className="font-body-sm text-body-sm text-on-surface">
+              <b>Announcement</b> · {c.announcement}
+            </p>
+          </div>
+        ) : null}
+
+        <section className="px-gutter pt-space-lg">
+          <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">Upcoming for {c.name}</h2>
+          {upcoming.length ? (
+            <div className="flex flex-col gap-space-md">
+              {upcoming.map((e) => (
+                <EventCard key={e.id} e={e} />
+              ))}
+            </div>
+          ) : (
+            <Notice icon="event" title="No events yet">
+              {c.name} events will appear here. <Link to="/events" className="text-primary underline">See all events</Link>
+            </Notice>
+          )}
+        </section>
+      </main>
+      <BottomNav />
+    </>
+  )
+}

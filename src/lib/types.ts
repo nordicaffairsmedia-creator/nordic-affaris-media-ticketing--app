@@ -27,6 +27,8 @@ export type EventItem = {
   lineup: { name: string; role: string }[]
   languages: string[]
   category: string | null
+  /** Slug of the community this event is tagged with in the admin (Events → Community). */
+  community: string | null
   venue: {
     name: string
     address: string
@@ -83,4 +85,19 @@ export type PublicOrder = {
     seat?: string | null
     qr?: string
   }[]
+}
+
+export type Community = {
+  slug: string
+  name: string
+  /** A few letters in the community language, shown on its card. */
+  script: string
+  tagline: string
+  description: string
+  cover: string | null
+  songs: string[]
+  groupLink: string | null
+  announcement: string
+  accent: 'gold' | 'blue'
+  order: number
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { PeopleIcon } from './icons'
 import { Icon } from './ui'
 
 /** Every page sits in a centred phone-width column; on desktop it simply floats in the middle. */
@@ -58,6 +59,7 @@ export function DetailHeader({ title, right }: { title: string; right?: ReactNod
 const TABS = [
   { to: '/', label: 'Discover', icon: 'explore', end: true },
   { to: '/events', label: 'Events', icon: 'calendar_month', end: false },
+  { to: '/communities', label: 'Communities', icon: '', end: false },
   { to: '/tickets', label: 'Tickets', icon: 'confirmation_number', end: false },
   { to: '/saved', label: 'Saved', icon: 'bookmark', end: false },
 ]
@@ -72,14 +74,14 @@ export function BottomNav() {
             to={t.to}
             end={t.end}
             className={({ isActive }) =>
-              `flex min-w-[64px] flex-col items-center justify-center gap-0.5 ${
+              `flex min-w-[58px] flex-col items-center justify-center gap-0.5 ${
                 isActive ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <Icon name={t.icon} fill={isActive} className="text-[24px]" />
+                {t.icon ? <Icon name={t.icon} fill={isActive} className="text-[24px]" /> : <PeopleIcon width={24} height={24} strokeWidth={isActive ? 2.2 : 1.8} />}
                 <span className="font-label-sm text-label-sm">{t.label}</span>
                 {isActive ? <span className="h-1 w-1 rounded-full bg-primary" /> : <span className="h-1 w-1" />}
               </>

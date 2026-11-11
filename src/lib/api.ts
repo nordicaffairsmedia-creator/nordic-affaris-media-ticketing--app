@@ -1,5 +1,5 @@
 import { API_URL, CMS_URL } from './config'
-import type { Availability, EventItem, PublicOrder, Quote, SalesStatus, Tier } from './types'
+import type { Availability, Community, EventItem, PublicOrder, Quote, SalesStatus, Tier } from './types'
 
 export class ApiError extends Error {
   constructor(
@@ -172,6 +172,7 @@ export function normaliseEvent(d: Rec): EventItem {
     })),
     languages: Array.isArray(d.eventLanguage) ? (d.eventLanguage as unknown[]).map(str) : [],
     category: str(rec(d.category).title) || null,
+    community: str(rec(d.community).slug) || null,
     venue:
       hasVenue || placeName || str(loc.address)
         ? {
@@ -321,5 +322,58 @@ export function errorText(e: unknown): string {
       return 'This event uses reserved seats, which must be chosen on the website.'
     default:
       return 'Something went wrong. Please try again.'
+  }
+}
+
+
+// ---------------------------------------------------------------- communities (CMS)
+
+/** One community from the admin (Communities). null = hidden in the app. */
+export function normaliseCommunity(d: Rec): (Community & { active: boolean }) | null {
+  const slug = str(d.slug)
+  const name = str(d.name)
+  if (!slug || !name) return null
+  const songs = (Array.isArray(d.songs) ? (d.songs as unknown[]) : [])
+    .map((x) => str(rec(x).url))
+    .filter(Boolean)
+    .map(abs)
+  const link = str(d.groupLink)
+  return {
+    slug,
+    name,
+    script: str(d.script),
+    tagline: '',
+    description: str(d.description),
+    cover: posterUrl(d.cover),
+    songs,
+    groupLink: /^https:\/\//.test(link) ? link : null,
+    announcement: str(d.announcement).trim(),
+    accent: d.accent === 'blue' ? 'blue' : 'gold',
+    order: num(d.order) ?? 10,
+    active: d.active !== false,
+  }
+}
+
+export async function fetchCommunityRecords(): Promise<Rec[]> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/communities?limit=50&depth=2&sort=order`)
+    if (!res.ok) return []
+    const data = (await res.json()) as { docs?: Rec[] }
+    return data.docs ?? []
+  } catch {
+    return []
+  }
+}
+
+/** Tells the admin (Communities → Community members) that this visitor joined. Best effort: the app works without it. */
+export async function postJoin(c: { slug: string; name: string }, v: { name: string; email: string }): Promise<void> {
+  try {
+    await fetch(`${CMS_URL}/api/community-joins`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ community: c.name, communitySlug: c.slug, name: v.name, email: v.email }),
+    })
+  } catch {
+    /* ignore */
   }
 }

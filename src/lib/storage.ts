@@ -103,6 +103,8 @@ export function signOutApp() {
   setVisitor(null)
   write(SESSION_KEY, null)
   write(ORDERS_KEY, null)
+  write('nam.communities', null)
+  window.dispatchEvent(new Event('nam-communities'))
   try {
     sessionStorage.removeItem('nam.welcomed')
   } catch {
@@ -129,4 +131,34 @@ export const getLocalOrders = (): LocalOrder[] => {
 export function rememberOrder(ref: string, t: string) {
   const all = getLocalOrders().filter((o) => o.ref !== ref)
   write(ORDERS_KEY, JSON.stringify([{ ref, t }, ...all].slice(0, 50)))
+}
+
+// ---------------------------------------------------------------- joined communities (this device)
+
+const JOINED_KEY = 'nam.communities'
+const readJoined = (): string[] => {
+  try {
+    const v = JSON.parse(read(JOINED_KEY) ?? '[]')
+    return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+export function useJoined() {
+  const [joined, setJoined] = useState<string[]>(readJoined)
+  useEffect(() => {
+    const on = () => setJoined(readJoined())
+    window.addEventListener('nam-communities', on)
+    return () => window.removeEventListener('nam-communities', on)
+  }, [])
+  /** Returns true when the community was just joined (false = left). */
+  const toggle = useCallback((slug: string) => {
+    const now = readJoined()
+    const has = now.includes(slug)
+    write(JOINED_KEY, JSON.stringify(has ? now.filter((x) => x !== slug) : [...now, slug]))
+    window.dispatchEvent(new Event('nam-communities'))
+    return !has
+  }, [])
+  return { joined, isJoined: (slug: string) => joined.includes(slug), toggle }
 }

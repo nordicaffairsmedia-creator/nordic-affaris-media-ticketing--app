@@ -22,10 +22,15 @@ export function PastEvents() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  // "Past Events" card on the first screen opens Discover at this section
+  useEffect(() => {
+    if (items.length && window.location.hash === '#past-events') document.getElementById('past-events')?.scrollIntoView()
+  }, [items.length])
+
   if (!items.length) return null
 
   return (
-    <section className="pb-space-lg">
+    <section id="past-events" className="scroll-mt-20 pb-space-lg">
       <div className="px-gutter pb-space-sm pt-space-xs">
         <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Past Events</h3>
       </div>

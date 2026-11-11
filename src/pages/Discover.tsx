@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CommunityStrip } from '../components/CommunityStrip'
 import { EventCard, FeaturedCard } from '../components/EventCards'
 import { Page } from '../components/Layout'
 import { PastEvents } from '../components/PastEvents'
@@ -158,6 +159,8 @@ export default function Discover() {
           ) : null}
         </>
       )}
+
+      <CommunityStrip />
 
       <PastEvents />
 

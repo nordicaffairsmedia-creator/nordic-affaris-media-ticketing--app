@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchMusicUrl } from '../lib/api'
+import { setMusicState, useMusicBus } from '../lib/musicBus'
 import { getVisitor } from '../lib/storage'
 
 const KEY = 'nam-music'
@@ -9,11 +10,13 @@ const KEY = 'nam-music'
  * Phones block sound until the first tap, so it starts on the first touch; the round button
  * at the bottom left pauses and resumes it and remembers the choice.
  */
-function Player({ src }: { src: string }) {
+function Player({ srcs }: { srcs: string[] }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const unlocked = useRef(false)
   const userPaused = useRef(false)
   const [on, setOn] = useState(false)
+  const [i, setI] = useState(0)
+  const firstTrack = useRef(true)
 
   useEffect(() => {
     const a = audioRef.current
@@ -91,9 +94,34 @@ function Player({ src }: { src: string }) {
     }
   }, [])
 
+  // several songs (a community page): when one ends the next starts, and the list loops
+  useEffect(() => {
+    if (firstTrack.current) {
+      firstTrack.current = false
+      return
+    }
+    const a = audioRef.current
+    if (a && !userPaused.current) a.play().catch(() => {})
+  }, [i])
+
+  // lets a community page show and control the same player
+  useEffect(() => {
+    setMusicState(on, toggle)
+    return () => setMusicState(false, null)
+  }, [on, toggle])
+
   return (
     <>
-      <audio ref={audioRef} src={src} loop preload="auto" playsInline aria-hidden="true" className="hidden" />
+      <audio
+        ref={audioRef}
+        src={srcs[i % srcs.length]}
+        loop={srcs.length === 1}
+        onEnded={() => setI((n) => (n + 1) % srcs.length)}
+        preload="auto"
+        playsInline
+        aria-hidden="true"
+        className="hidden"
+      />
       <button
         type="button"
         data-music-toggle
@@ -140,5 +168,8 @@ export function BackgroundMusic() {
       clearTimeout(t)
     }
   }, [entered])
-  return entered && src ? <Player key={src} src={src} /> : null
+  // a community page can replace the app music with its own songs while it is open
+  const bus = useMusicBus()
+  const tracks = bus.tracks ?? (src ? [src] : null)
+  return entered && tracks ? <Player key={tracks.join('|')} srcs={tracks} /> : null
 }

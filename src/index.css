@@ -87,6 +87,11 @@
   .welcome-rise { animation: none; opacity: 1; }
 }
 
+@keyframes eq {
+  from { transform: scaleY(0.45); }
+  to { transform: scaleY(1); }
+}
+
 @keyframes welcome-bar {
   from { width: 0; }
   to { width: 100%; }

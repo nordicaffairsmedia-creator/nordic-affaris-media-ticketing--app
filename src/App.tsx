@@ -5,6 +5,9 @@ import { Page } from './components/Layout'
 import { Notice } from './components/ui'
 import { EventsProvider } from './lib/EventsContext'
 import Calendar from './pages/Calendar'
+import Cards from './pages/Cards'
+import Communities from './pages/Communities'
+import CommunityPage from './pages/CommunityPage'
 import Checkout from './pages/Checkout'
 import Confirmation from './pages/Confirmation'
 import Discover from './pages/Discover'
@@ -73,9 +76,21 @@ function Home() {
     setEntered(true)
   }, [])
   const [known] = useState(() => getVisitor() !== null)
+  const [cards, setCards] = useState(false)
+  // right after signing up: cards to step into the app (once)
+  if (cards) return <Cards onSkip={() => setCards(false)} />
   if (entered) return guard(<Discover />)
-  // first visit: logo and welcome, then the details form rise in on the same screen
-  if (!known) return <Register intro onDone={done} />
+  // first visit: logo and welcome, then the sign-up form rise in on the same screen
+  if (!known)
+    return (
+      <Register
+        intro
+        onDone={() => {
+          done()
+          setCards(true)
+        }}
+      />
+    )
   return <Welcome onDone={done} />
 }
 
@@ -88,6 +103,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/events" element={guard(<Calendar />)} />
+          <Route path="/communities" element={guard(<Communities />)} />
+          <Route path="/communities/:slug" element={guard(<CommunityPage />)} />
           <Route path="/events/:slug" element={guard(<EventDetails />)} />
           <Route path="/events/:slug/checkout" element={guard(<Checkout />)} />
           <Route path="/booking/confirmation" element={<Confirmation />} />
