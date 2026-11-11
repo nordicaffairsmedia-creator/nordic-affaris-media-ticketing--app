@@ -30,6 +30,11 @@ export const PhotoIcon = (p: P) => (
     <path d="m4 17 5-4.5 3.5 3 3-2.5 4.5 4" />
   </svg>
 )
+export const BuildingIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M5 20V5.5A1.5 1.5 0 0 1 6.5 4h7A1.5 1.5 0 0 1 15 5.5V20M15 9.5h2.5A1.5 1.5 0 0 1 19 11v9M3.5 20h17M8.5 8h3M8.5 11.5h3M8.5 15h3" />
+  </svg>
+)
 export const ChatIcon = (p: P) => (
   <svg {...base} {...p}>
     <path d="M4 5.5h16v10.5H9.5L5 20v-4H4z" />
