@@ -12,6 +12,7 @@ const DEFAULTS: Community[] = [
   { slug: 'kannada', name: 'Kannada', script: 'ಕನ್', tagline: 'Kannada songs · events', accent: 'blue', order: 4 },
   { slug: 'north-indian', name: 'North Indian', script: 'हिं', tagline: 'Hindi & Punjabi songs · events', accent: 'gold', order: 5 },
 ].map((d) => ({
+  kind: 'community' as const,
   description: '',
   cover: null,
   songs: [],
@@ -24,7 +25,7 @@ let cache: Community[] | null = null
 let pending: Promise<Community[]> | null = null
 
 async function load(): Promise<Community[]> {
-  const recs = (await fetchCommunityRecords()).map(normaliseCommunity).filter((c): c is NonNullable<typeof c> => !!c)
+  const recs = (await fetchCommunityRecords()).map((d) => normaliseCommunity(d)).filter((c): c is NonNullable<typeof c> => !!c)
   const bySlug = new Map(recs.map((r) => [r.slug, r]))
   const out: Community[] = []
   for (const d of DEFAULTS) {
@@ -56,6 +57,46 @@ export function useCommunities() {
   }, [])
   return list
 }
+
+let orgCache: Community[] | null = null
+let orgPending: Promise<Community[]> | null = null
+
+async function loadOrganisations(): Promise<Community[]> {
+  const recs = (await fetchCommunityRecords('organisations')).map((d) => normaliseCommunity(d, 'organisation'))
+  return recs
+    .filter((c): c is NonNullable<typeof c> => !!c && c.active)
+    .map((c) => ({ ...c, tagline: 'Association · events' }))
+    .sort((a, b) => a.order - b.order)
+}
+
+/** Organisations (associations and clubs) from the admin. Empty until the admin adds some. */
+export function useOrganisations() {
+  const [list, setList] = useState<Community[]>(orgCache ?? [])
+  const [loading, setLoading] = useState(orgCache === null && configured)
+  useEffect(() => {
+    if (!configured) return
+    let alive = true
+    orgPending ??= loadOrganisations().finally(() => {
+      orgPending = null
+    })
+    orgPending.then((l) => {
+      orgCache = l
+      if (alive) {
+        setList(l)
+        setLoading(false)
+      }
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
+  return { list, loading }
+}
+
+/** Where a community or organisation page lives. */
+export const pathOf = (c: Pick<Community, 'kind' | 'slug'>) => `/${c.kind === 'organisation' ? 'organisations' : 'communities'}/${c.slug}`
+/** Key under which "joined" is remembered on the phone (organisations are prefixed so names never clash). */
+export const joinKey = (c: Pick<Community, 'kind' | 'slug'>) => (c.kind === 'organisation' ? `org:${c.slug}` : c.slug)
 
 /** Tells the admin about a new member (best effort). */
 export function announceJoin(c: Community) {

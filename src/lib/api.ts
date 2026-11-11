@@ -173,6 +173,7 @@ export function normaliseEvent(d: Rec): EventItem {
     languages: Array.isArray(d.eventLanguage) ? (d.eventLanguage as unknown[]).map(str) : [],
     category: str(rec(d.category).title) || null,
     community: str(rec(d.community).slug) || null,
+    organisation: str(rec(d.organisation).slug) || null,
     venue:
       hasVenue || placeName || str(loc.address)
         ? {
@@ -329,7 +330,7 @@ export function errorText(e: unknown): string {
 // ---------------------------------------------------------------- communities (CMS)
 
 /** One community from the admin (Communities). null = hidden in the app. */
-export function normaliseCommunity(d: Rec): (Community & { active: boolean }) | null {
+export function normaliseCommunity(d: Rec, kind: Community['kind'] = 'community'): (Community & { active: boolean }) | null {
   const slug = str(d.slug)
   const name = str(d.name)
   if (!slug || !name) return null
@@ -339,6 +340,7 @@ export function normaliseCommunity(d: Rec): (Community & { active: boolean }) | 
     .map(abs)
   const link = str(d.groupLink)
   return {
+    kind,
     slug,
     name,
     script: str(d.script),
@@ -354,9 +356,9 @@ export function normaliseCommunity(d: Rec): (Community & { active: boolean }) | 
   }
 }
 
-export async function fetchCommunityRecords(): Promise<Rec[]> {
+export async function fetchCommunityRecords(collection: 'communities' | 'organisations' = 'communities'): Promise<Rec[]> {
   try {
-    const res = await fetch(`${CMS_URL}/api/communities?limit=50&depth=2&sort=order`)
+    const res = await fetch(`${CMS_URL}/api/${collection}?limit=50&depth=2&sort=order`)
     if (!res.ok) return []
     const data = (await res.json()) as { docs?: Rec[] }
     return data.docs ?? []
@@ -366,12 +368,12 @@ export async function fetchCommunityRecords(): Promise<Rec[]> {
 }
 
 /** Tells the admin (Communities → Community members) that this visitor joined. Best effort: the app works without it. */
-export async function postJoin(c: { slug: string; name: string }, v: { name: string; email: string }): Promise<void> {
+export async function postJoin(c: { slug: string; name: string; kind?: string }, v: { name: string; email: string }): Promise<void> {
   try {
     await fetch(`${CMS_URL}/api/community-joins`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ community: c.name, communitySlug: c.slug, name: v.name, email: v.email }),
+      body: JSON.stringify({ community: c.name, communitySlug: c.slug, kind: c.kind ?? 'community', name: v.name, email: v.email }),
     })
   } catch {
     /* ignore */

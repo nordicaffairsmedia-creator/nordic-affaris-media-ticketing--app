@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { PeopleIcon } from './icons'
 import { Icon } from './ui'
 
@@ -65,6 +65,7 @@ const TABS = [
 ]
 
 export function BottomNav() {
+  const { pathname } = useLocation()
   return (
     <nav className="fixed bottom-0 z-40 w-full bg-surface-container/95 pb-safe shadow-[0_-8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl">
       <div className={`${COLUMN} flex h-16 items-stretch justify-around`}>
@@ -75,17 +76,20 @@ export function BottomNav() {
             end={t.end}
             className={({ isActive }) =>
               `flex min-w-[58px] flex-col items-center justify-center gap-0.5 ${
-                isActive ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
+                isActive || (t.to === '/communities' && pathname.startsWith('/organisations')) ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
               }`
             }
           >
-            {({ isActive }) => (
-              <>
-                {t.icon ? <Icon name={t.icon} fill={isActive} className="text-[24px]" /> : <PeopleIcon width={24} height={24} strokeWidth={isActive ? 2.2 : 1.8} />}
-                <span className="font-label-sm text-label-sm">{t.label}</span>
-                {isActive ? <span className="h-1 w-1 rounded-full bg-primary" /> : <span className="h-1 w-1" />}
-              </>
-            )}
+            {({ isActive }) => {
+              const on = isActive || (t.to === '/communities' && pathname.startsWith('/organisations'))
+              return (
+                <>
+                  {t.icon ? <Icon name={t.icon} fill={on} className="text-[24px]" /> : <PeopleIcon width={24} height={24} strokeWidth={on ? 2.2 : 1.8} />}
+                  <span className="font-label-sm text-label-sm">{t.label}</span>
+                  {on ? <span className="h-1 w-1 rounded-full bg-primary" /> : <span className="h-1 w-1" />}
+                </>
+              )
+            }}
           </NavLink>
         ))}
       </div>

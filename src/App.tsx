@@ -105,6 +105,8 @@ export default function App() {
           <Route path="/events" element={guard(<Calendar />)} />
           <Route path="/communities" element={guard(<Communities />)} />
           <Route path="/communities/:slug" element={guard(<CommunityPage />)} />
+          <Route path="/organisations" element={guard(<Communities kind="organisation" />)} />
+          <Route path="/organisations/:slug" element={guard(<CommunityPage kind="organisation" />)} />
           <Route path="/events/:slug" element={guard(<EventDetails />)} />
           <Route path="/events/:slug/checkout" element={guard(<Checkout />)} />
           <Route path="/booking/confirmation" element={<Confirmation />} />

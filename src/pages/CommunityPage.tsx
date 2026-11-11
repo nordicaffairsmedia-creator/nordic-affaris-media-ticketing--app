@@ -4,16 +4,19 @@ import { EventCard } from '../components/EventCards'
 import { CheckIcon, ChatIcon, SpeakerIcon } from '../components/icons'
 import { BottomNav, COLUMN, DetailHeader } from '../components/Layout'
 import { Notice } from '../components/ui'
-import { announceJoin, useCommunities } from '../lib/communities'
+import { announceJoin, joinKey, useCommunities, useOrganisations } from '../lib/communities'
 import { useEvents } from '../lib/EventsContext'
 import { isUpcoming } from '../lib/format'
 import { setCommunityTracks, useMusicBus } from '../lib/musicBus'
 import { useJoined } from '../lib/storage'
 
-export default function CommunityPage() {
+export default function CommunityPage({ kind = 'community' }: { kind?: 'community' | 'organisation' }) {
   const { slug = '' } = useParams()
-  const list = useCommunities()
-  const c = list.find((x) => x.slug === slug)
+  const isOrg = kind === 'organisation'
+  const communities = useCommunities()
+  const orgs = useOrganisations()
+  const c = (isOrg ? orgs.list : communities).find((x) => x.slug === slug)
+  const back = isOrg ? '/organisations' : '/communities'
   const { events } = useEvents()
   const { isJoined, toggle } = useJoined()
   const bus = useMusicBus()
@@ -30,11 +33,11 @@ export default function CommunityPage() {
   if (!c)
     return (
       <>
-        <DetailHeader title="Community" />
+        <DetailHeader title={isOrg ? 'Organisation' : 'Community'} />
         <main className={`${COLUMN} min-h-screen pb-24 pt-16`}>
           <div className="px-gutter pt-space-lg">
-            <Notice icon="explore_off" title="Community not found">
-              This community is not available. <Link to="/communities" className="text-primary underline">See all communities</Link>
+            <Notice icon="explore_off" title={isOrg ? 'Organisation not found' : 'Community not found'}>
+              This {isOrg ? 'organisation' : 'community'} is not available. <Link to={back} className="text-primary underline">See all</Link>
             </Notice>
           </div>
         </main>
@@ -42,8 +45,9 @@ export default function CommunityPage() {
       </>
     )
 
-  const joined = isJoined(c.slug)
-  const upcoming = events.filter((e) => e.community === c.slug && isUpcoming(e.startsAt, e.endsAt))
+  const key = joinKey(c)
+  const joined = isJoined(key)
+  const upcoming = events.filter((e) => (isOrg ? e.organisation : e.community) === c.slug && isUpcoming(e.startsAt, e.endsAt))
   const hasSongs = c.songs.length > 0
 
   return (
@@ -53,9 +57,9 @@ export default function CommunityPage() {
         <section className="relative overflow-hidden bg-gradient-to-br from-[#1f3560] via-surface-container to-surface px-gutter pb-space-lg pt-space-lg">
           {c.cover ? <img src={c.cover} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" /> : null}
           <div className="relative flex flex-col gap-space-sm">
-            <span className="font-label-md text-label-md uppercase tracking-[0.2em] text-secondary">Community</span>
+            <span className="font-label-md text-label-md uppercase tracking-[0.2em] text-secondary">{isOrg ? 'Organisation' : 'Community'}</span>
             <h1 className="font-headline-xl-mobile text-headline-xl-mobile leading-tight text-on-surface">
-              {c.name} <span className="text-primary">Community</span>
+              {isOrg ? <span className="text-primary">{c.name}</span> : <>{c.name} <span className="text-primary">Community</span></>}
             </h1>
             {c.description ? <p className="font-body-md text-body-md text-on-surface-variant">{c.description}</p> : null}
           </div>
@@ -101,7 +105,7 @@ export default function CommunityPage() {
           <button
             type="button"
             onClick={() => {
-              if (toggle(c.slug)) announceJoin(c)
+              if (toggle(key)) announceJoin(c)
             }}
             className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-lg font-label-lg text-label-lg active:scale-[0.98] ${
               joined ? 'border-[1.5px] border-primary/60 text-primary' : 'bg-primary text-on-primary shadow-[0_4px_16px_rgba(212,175,55,0.35)]'
@@ -112,7 +116,7 @@ export default function CommunityPage() {
                 <CheckIcon width={18} height={18} /> Joined
               </>
             ) : (
-              'Join community'
+              isOrg ? 'Join organisation' : 'Join community'
             )}
           </button>
           {c.groupLink ? (
@@ -147,7 +151,7 @@ export default function CommunityPage() {
         ) : null}
 
         <section className="px-gutter pt-space-lg">
-          <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">Upcoming for {c.name}</h2>
+          <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">{isOrg ? `Events by ${c.name}` : `Upcoming for ${c.name}`}</h2>
           {upcoming.length ? (
             <div className="flex flex-col gap-space-md">
               {upcoming.map((e) => (
@@ -156,7 +160,7 @@ export default function CommunityPage() {
             </div>
           ) : (
             <Notice icon="event" title="No events yet">
-              {c.name} events will appear here. <Link to="/events" className="text-primary underline">See all events</Link>
+              {isOrg ? 'Events from this organisation' : `${c.name} events`} will appear here. <Link to="/events" className="text-primary underline">See all events</Link>
             </Notice>
           )}
         </section>

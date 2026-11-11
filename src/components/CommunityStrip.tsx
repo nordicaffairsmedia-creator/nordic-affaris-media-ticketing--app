@@ -1,18 +1,21 @@
 import { Link } from 'react-router-dom'
-import { useCommunities } from '../lib/communities'
+import { joinKey, pathOf, useCommunities, useOrganisations } from '../lib/communities'
 import { useJoined } from '../lib/storage'
 import { ChevronRightIcon } from './icons'
 
 /** Communities on Discover; the ones the visitor joined come first. */
-export function CommunityStrip() {
-  const list = useCommunities()
+export function CommunityStrip({ kind = 'community' }: { kind?: 'community' | 'organisation' }) {
+  const communities = useCommunities()
+  const organisations = useOrganisations().list
+  const list = kind === 'organisation' ? organisations : communities
   const { isJoined } = useJoined()
-  const sorted = [...list].sort((a, b) => Number(isJoined(b.slug)) - Number(isJoined(a.slug)))
+  const sorted = [...list].sort((a, b) => Number(isJoined(joinKey(b))) - Number(isJoined(joinKey(a))))
+  if (!sorted.length) return null
   return (
     <section className="pb-space-lg">
       <div className="flex items-end justify-between px-gutter pb-space-sm pt-space-xs">
-        <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Communities</h3>
-        <Link to="/communities" className="flex items-center gap-1 pb-1 font-label-md text-label-md text-primary">
+        <h3 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">{kind === 'organisation' ? 'Organisations' : 'Communities'}</h3>
+        <Link to={kind === 'organisation' ? '/organisations' : '/communities'} className="flex items-center gap-1 pb-1 font-label-md text-label-md text-primary">
           See all <ChevronRightIcon width={16} height={16} />
         </Link>
       </div>
@@ -20,12 +23,12 @@ export function CommunityStrip() {
         {sorted.map((c) => (
           <Link
             key={c.slug}
-            to={`/communities/${c.slug}`}
+            to={pathOf(c)}
             className="flex items-center rounded-2xl border border-primary/20 bg-surface-container p-space-md transition-transform active:scale-[0.97]"
           >
             <div className="min-w-0">
               <p className="truncate font-label-lg text-label-lg text-on-surface">{c.name}</p>
-              <p className="font-label-sm text-label-sm text-secondary">{isJoined(c.slug) ? 'Joined' : '♪ Open'}</p>
+              <p className="font-label-sm text-label-sm text-secondary">{isJoined(joinKey(c)) ? 'Joined' : kind === 'organisation' ? 'Open' : '♪ Open'}</p>
             </div>
           </Link>
         ))}

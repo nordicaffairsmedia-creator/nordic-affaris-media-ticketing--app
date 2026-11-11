@@ -29,6 +29,8 @@ export type EventItem = {
   category: string | null
   /** Slug of the community this event is tagged with in the admin (Events → Community). */
   community: string | null
+  /** Slug of the organisation this event is tagged with in the admin (Events → Organisation). */
+  organisation: string | null
   venue: {
     name: string
     address: string
@@ -88,6 +90,8 @@ export type PublicOrder = {
 }
 
 export type Community = {
+  /** A community (language group) or an organisation (association / club). */
+  kind: 'community' | 'organisation'
   slug: string
   name: string
   /** A few letters in the community language, shown on its card. */

@@ -162,6 +162,8 @@ export default function Discover() {
 
       <CommunityStrip />
 
+      <CommunityStrip kind="organisation" />
+
       <PastEvents />
 
       {SITE_URL ? (
