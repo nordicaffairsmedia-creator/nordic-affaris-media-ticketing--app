@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ScriptTile } from '../components/CommunityCard'
 import { EventCard } from '../components/EventCards'
 import { CheckIcon, ChatIcon, SpeakerIcon } from '../components/icons'
 import { BottomNav, COLUMN, DetailHeader } from '../components/Layout'
@@ -53,11 +52,7 @@ export default function CommunityPage() {
       <main className={`${COLUMN} min-h-screen pb-24 pt-16`}>
         <section className="relative overflow-hidden bg-gradient-to-br from-[#1f3560] via-surface-container to-surface px-gutter pb-space-lg pt-space-lg">
           {c.cover ? <img src={c.cover} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" /> : null}
-          <div aria-hidden className="pointer-events-none absolute -right-6 top-2 select-none text-[8.5rem] font-semibold leading-none text-primary/10">
-            {c.script}
-          </div>
           <div className="relative flex flex-col gap-space-sm">
-            <ScriptTile c={c} size={56} />
             <span className="font-label-md text-label-md uppercase tracking-[0.2em] text-secondary">Community</span>
             <h1 className="font-headline-xl-mobile text-headline-xl-mobile leading-tight text-on-surface">
               {c.name} <span className="text-primary">Community</span>
@@ -129,7 +124,17 @@ export default function CommunityPage() {
             >
               <ChatIcon width={18} height={18} /> Group chat
             </a>
-          ) : null}
+          ) : (
+            <div
+              aria-disabled="true"
+              className="flex h-12 flex-1 flex-col items-center justify-center rounded-lg border-[1.5px] border-outline-variant text-on-surface-variant"
+            >
+              <span className="flex items-center gap-2 font-label-lg text-label-lg">
+                <ChatIcon width={18} height={18} /> Group chat
+              </span>
+              <span className="font-label-sm text-label-sm">Opens soon</span>
+            </div>
+          )}
         </div>
 
         {c.announcement ? (

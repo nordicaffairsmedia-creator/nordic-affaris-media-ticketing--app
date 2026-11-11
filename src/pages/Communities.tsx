@@ -9,11 +9,7 @@ export default function Communities() {
   return (
     <Page title="Communities">
       <div className="flex flex-col gap-space-sm px-gutter pt-space-md">
-        <h1 className="font-headline-lg-mobile text-headline-lg-mobile leading-tight text-on-surface">
-          Find your people.
-          <br />
-          <span className="text-primary">Hear your music.</span>
-        </h1>
+        <h1 className="font-headline-lg-mobile text-headline-lg-mobile leading-tight text-primary">Connect</h1>
       </div>
       <div className="flex flex-col gap-space-sm px-gutter pt-space-md">
         {list.map((c) => (

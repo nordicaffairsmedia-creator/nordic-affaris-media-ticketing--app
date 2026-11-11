@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useCommunities } from '../lib/communities'
 import { useJoined } from '../lib/storage'
-import { ScriptTile } from './CommunityCard'
 import { ChevronRightIcon } from './icons'
 
 /** Communities on Discover; the ones the visitor joined come first. */
@@ -22,9 +21,8 @@ export function CommunityStrip() {
           <Link
             key={c.slug}
             to={`/communities/${c.slug}`}
-            className="flex items-center gap-space-sm rounded-2xl border border-primary/20 bg-surface-container p-space-sm transition-transform active:scale-[0.97]"
+            className="flex items-center rounded-2xl border border-primary/20 bg-surface-container p-space-md transition-transform active:scale-[0.97]"
           >
-            <ScriptTile c={c} size={44} />
             <div className="min-w-0">
               <p className="truncate font-label-lg text-label-lg text-on-surface">{c.name}</p>
               <p className="font-label-sm text-label-sm text-secondary">{isJoined(c.slug) ? 'Joined' : '♪ Open'}</p>

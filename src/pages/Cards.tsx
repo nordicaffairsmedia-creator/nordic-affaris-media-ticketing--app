@@ -12,12 +12,17 @@ export default function Cards({ onSkip }: { onSkip: () => void }) {
       <div aria-hidden className="pointer-events-none absolute -top-32 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute -bottom-40 right-[-6rem] h-80 w-80 rounded-full bg-tertiary/10 blur-3xl" />
 
-      <div className="welcome-rise relative flex items-center gap-space-sm">
-        <img src="/icon-512.png" alt="Nordic Affairs Media" width={46} height={46} className="h-[46px] w-[46px] rounded-xl object-contain ring-1 ring-primary/40" />
-        <div>
-          <p className="font-label-sm text-label-sm uppercase tracking-[0.2em] text-secondary">Nordic Affairs Media</p>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">You&rsquo;re all set</p>
-        </div>
+      <div className="relative flex items-center gap-space-sm">
+        <img
+          src="/icon-512.png"
+          alt="Nordic Affairs Media"
+          width={56}
+          height={56}
+          loading="eager"
+          decoding="sync"
+          className="h-14 w-14 rounded-2xl bg-[#0b0b0b] object-contain ring-1 ring-primary/40"
+        />
+        <p className="font-label-md text-label-md uppercase tracking-[0.2em] text-secondary">Nordic Affairs Media</p>
       </div>
 
       <div className="welcome-rise relative mt-space-lg" style={{ animationDelay: '100ms' }}>
