@@ -413,3 +413,17 @@ export async function registerOrganisation(f: OrganisationForm): Promise<{ ok: t
     return { ok: false, message: 'No connection. Please try again.' }
   }
 }
+
+/** Who else joined: first names only. Works only for members (the server checks the caller's email). */
+export async function fetchMembers(kind: 'community' | 'organisation', slug: string, email: string): Promise<{ count: number; members: string[] } | null> {
+  try {
+    const qs = new URLSearchParams({ kind, slug, email })
+    const res = await fetch(`${CMS_URL}/api/community-joins/members?${qs}`)
+    if (!res.ok) return null
+    const d = (await res.json()) as { count?: number; members?: unknown }
+    const members = Array.isArray(d.members) ? d.members.filter((m): m is string => typeof m === 'string') : []
+    return { count: typeof d.count === 'number' ? d.count : members.length, members }
+  } catch {
+    return null
+  }
+}

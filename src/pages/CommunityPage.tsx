@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { EventCard } from '../components/EventCards'
 import { CheckIcon, ChatIcon, SpeakerIcon } from '../components/icons'
@@ -8,7 +8,8 @@ import { announceJoin, joinKey, useCommunities, useOrganisations } from '../lib/
 import { useEvents } from '../lib/EventsContext'
 import { isUpcoming } from '../lib/format'
 import { setCommunityTracks, useMusicBus } from '../lib/musicBus'
-import { useJoined } from '../lib/storage'
+import { fetchMembers } from '../lib/api'
+import { getVisitor, useJoined } from '../lib/storage'
 
 export default function CommunityPage({ kind = 'community' }: { kind?: 'community' | 'organisation' }) {
   const { slug = '' } = useParams()
@@ -30,6 +31,26 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songKey])
 
+  const joined = c ? isJoined(joinKey(c)) : false
+  const [people, setPeople] = useState<{ count: number; members: string[] } | null>(null)
+  useEffect(() => {
+    const email = getVisitor()?.email
+    if (!c || !joined || !email) {
+      setPeople(null)
+      return
+    }
+    let stop = false
+    const t = setTimeout(() => {
+      fetchMembers(isOrg ? 'organisation' : 'community', c.slug, email).then((r) => {
+        if (!stop) setPeople(r)
+      })
+    }, 900)
+    return () => {
+      stop = true
+      clearTimeout(t)
+    }
+  }, [joined, isOrg, c?.slug])
+
   if (!c)
     return (
       <>
@@ -46,7 +67,6 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
     )
 
   const key = joinKey(c)
-  const joined = isJoined(key)
   const upcoming = events.filter((e) => (isOrg ? e.organisation : e.community) === c.slug && isUpcoming(e.startsAt, e.endsAt))
   const hasSongs = c.songs.length > 0
 
@@ -174,6 +194,22 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
               <b>Announcement</b> · {c.announcement}
             </p>
           </div>
+        ) : null}
+
+        {joined && people && people.count > 0 ? (
+          <section className="px-gutter pt-space-lg">
+            <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">
+              Members <span className="font-label-md text-label-md text-on-surface-variant">· {people.count}</span>
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {people.members.map((m, i) => (
+                <span key={`${m}-${i}`} className="flex items-center gap-2 rounded-full bg-surface-container py-1 pl-1 pr-3 font-label-md text-label-md text-on-surface">
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/20 text-primary">{m.charAt(0).toUpperCase()}</span>
+                  {m}
+                </span>
+              ))}
+            </div>
+          </section>
         ) : null}
 
         <section className="px-gutter pt-space-lg">
