@@ -49,8 +49,8 @@ export function DetailHeader({ title, right }: { title: string; right?: ReactNod
         >
           <Icon name="arrow_back" />
         </button>
-        <span className="line-clamp-1 flex-1 text-center font-headline-sm text-headline-sm text-on-surface">{title}</span>
-        <div className="flex min-w-[44px] items-center justify-end gap-1">{right}</div>
+        <span className="line-clamp-1 min-w-0 flex-1 text-center text-[19px] font-headline-sm text-headline-sm text-on-surface">{title}</span>
+        <div className="flex min-w-[96px] shrink-0 items-center justify-end gap-1">{right}</div>
       </div>
     </header>
   )
