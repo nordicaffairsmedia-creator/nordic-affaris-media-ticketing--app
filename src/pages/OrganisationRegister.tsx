@@ -46,8 +46,7 @@ export default function OrganisationRegister() {
     e.preventDefault()
     if (busy) return
     if (f.name.trim().length < 2) return setError('Please enter the organisation name.')
-    if (f.contactName.trim().length < 2) return setError('Please enter a contact person.')
-    if (!EMAIL.test(f.contactEmail.trim())) return setError('Please enter a valid contact email.')
+    if (f.contactEmail.trim() && !EMAIL.test(f.contactEmail.trim())) return setError('Please enter a valid contact email.')
     const links: Partial<Record<'website' | 'youtube' | 'instagram' | 'facebook' | 'groupLink', string>> = {}
     for (const k of ['website', 'youtube', 'instagram', 'facebook', 'groupLink'] as const) {
       const l = toLink(f[k])
@@ -111,10 +110,10 @@ export default function OrganisationRegister() {
             ))}
 
             <div className="mt-space-xs rounded-xl bg-surface-container-low p-space-sm">
-              <p className="pb-space-xs font-label-md text-label-md text-secondary">Contact person (private, only we can see this)</p>
+              <p className="pb-space-xs font-label-md text-label-md text-secondary">Contact person (optional, private, only we can see this)</p>
               <div className="flex flex-col gap-space-sm">
-                <input className={input} value={f.contactName} onChange={set('contactName')} placeholder="Name *" autoComplete="name" maxLength={80} />
-                <input className={input} type="email" value={f.contactEmail} onChange={set('contactEmail')} placeholder="Email *" autoComplete="email" maxLength={200} />
+                <input className={input} value={f.contactName} onChange={set('contactName')} placeholder="Name (optional)" autoComplete="name" maxLength={80} />
+                <input className={input} type="email" value={f.contactEmail} onChange={set('contactEmail')} placeholder="Email (optional)" autoComplete="email" maxLength={200} />
               </div>
             </div>
 
