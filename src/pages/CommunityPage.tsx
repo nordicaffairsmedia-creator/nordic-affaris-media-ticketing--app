@@ -141,6 +141,32 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
           )}
         </div>
 
+        {isOrg && (c.city || (c.links && Object.keys(c.links).length)) ? (
+          <div className="flex flex-wrap items-center gap-space-xs px-gutter pt-space-md">
+            {c.city ? <span className="mr-1 font-label-md text-label-md text-on-surface-variant">{c.city}</span> : null}
+            {(
+              [
+                ['website', 'Website'],
+                ['youtube', 'YouTube'],
+                ['instagram', 'Instagram'],
+                ['facebook', 'Facebook'],
+              ] as const
+            ).map(([k, label]) =>
+              c.links?.[k] ? (
+                <a
+                  key={k}
+                  href={c.links[k]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-primary/40 px-3 py-1.5 font-label-md text-label-md text-primary active:scale-95"
+                >
+                  {label} &#8599;
+                </a>
+              ) : null,
+            )}
+          </div>
+        ) : null}
+
         {c.announcement ? (
           <div className="mx-gutter mt-space-md flex items-start gap-space-sm rounded-2xl border border-dashed border-primary/35 bg-surface-container-low p-space-sm">
             <SpeakerIcon className="mt-0.5 shrink-0 text-primary" />

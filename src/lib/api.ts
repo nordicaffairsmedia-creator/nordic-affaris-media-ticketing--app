@@ -352,6 +352,12 @@ export function normaliseCommunity(d: Rec, kind: Community['kind'] = 'community'
     announcement: str(d.announcement).trim(),
     accent: d.accent === 'blue' ? 'blue' : 'gold',
     order: num(d.order) ?? 10,
+    city: str(d.city),
+    links: Object.fromEntries(
+      (['website', 'youtube', 'instagram', 'facebook'] as const)
+        .map((k) => [k, str(d[k])] as const)
+        .filter(([, v]) => /^https:\/\//.test(v)),
+    ),
     active: d.active !== false,
   }
 }
@@ -377,5 +383,33 @@ export async function postJoin(c: { slug: string; name: string; kind?: string },
     })
   } catch {
     /* ignore */
+  }
+}
+
+export type OrganisationForm = {
+  name: string
+  description: string
+  city: string
+  website: string
+  youtube: string
+  instagram: string
+  facebook: string
+  groupLink: string
+  contactName: string
+  contactEmail: string
+}
+
+/** An organisation registers itself. It is saved hidden; staff approve it in the admin before it shows in the app. */
+export async function registerOrganisation(f: OrganisationForm): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/organisations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(f),
+    })
+    if (res.ok) return { ok: true }
+    return { ok: false, message: 'We could not send your details. Please check them and try again.' }
+  } catch {
+    return { ok: false, message: 'No connection. Please try again.' }
   }
 }

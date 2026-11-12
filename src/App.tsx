@@ -8,6 +8,7 @@ import Calendar from './pages/Calendar'
 import Cards from './pages/Cards'
 import Communities from './pages/Communities'
 import CommunityPage from './pages/CommunityPage'
+import OrganisationRegister from './pages/OrganisationRegister'
 import Checkout from './pages/Checkout'
 import Confirmation from './pages/Confirmation'
 import Discover from './pages/Discover'
@@ -106,6 +107,7 @@ export default function App() {
           <Route path="/communities" element={guard(<Communities />)} />
           <Route path="/communities/:slug" element={guard(<CommunityPage />)} />
           <Route path="/organisations" element={guard(<Communities kind="organisation" />)} />
+          <Route path="/organisations/register" element={guard(<OrganisationRegister />)} />
           <Route path="/organisations/:slug" element={guard(<CommunityPage kind="organisation" />)} />
           <Route path="/events/:slug" element={guard(<EventDetails />)} />
           <Route path="/events/:slug/checkout" element={guard(<Checkout />)} />

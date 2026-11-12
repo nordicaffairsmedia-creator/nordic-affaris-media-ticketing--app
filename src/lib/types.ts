@@ -104,4 +104,7 @@ export type Community = {
   announcement: string
   accent: 'gold' | 'blue'
   order: number
+  /** Organisations only: where to find them online. */
+  city?: string
+  links?: { website?: string; youtube?: string; instagram?: string; facebook?: string }
 }
