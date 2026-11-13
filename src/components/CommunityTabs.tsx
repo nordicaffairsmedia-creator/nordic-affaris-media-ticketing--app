@@ -1,23 +1,29 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { fetchChat, fetchMembers, sendChat, type ChatMessage } from '../lib/api'
+import { fetchChat, fetchMembers, postJoin, sendChat, type ChatMessage } from '../lib/api'
 import { getVisitor } from '../lib/storage'
 import { Notice } from './ui'
 
 type Kind = 'community' | 'organisation'
 
 /** Everyone who signed up in the app can see who joined (first names only). */
-export function MembersPanel({ kind, slug }: { kind: Kind; slug: string }) {
+export function MembersPanel({ kind, slug, name, joined }: { kind: Kind; slug: string; name: string; joined: boolean }) {
   const [data, setData] = useState<{ count: number; members: string[] } | null | undefined>(undefined)
   useEffect(() => {
     const email = getVisitor()?.email
     if (!email) return setData(null)
     let stop = false
     setData(undefined)
-    fetchMembers(kind, slug, email).then((r) => !stop && setData(r))
+    const v = getVisitor()
+    ;(async () => {
+      // re-send the join (harmless if already saved) so people who joined before this feature also appear
+      if (joined && v) await postJoin({ slug, name, kind }, { name: v.name, email: v.email })
+      const r = await fetchMembers(kind, slug, email)
+      if (!stop) setData(r)
+    })()
     return () => {
       stop = true
     }
-  }, [kind, slug])
+  }, [kind, slug, name, joined])
 
   if (data === undefined) return <p className="px-gutter pt-space-lg font-body-md text-body-md text-on-surface-variant">Loading…</p>
   if (data === null)
@@ -32,16 +38,24 @@ export function MembersPanel({ kind, slug }: { kind: Kind; slug: string }) {
         <Notice icon="groups" title="No members yet">Be the first to join.</Notice>
       </div>
     )
+  // my own name first, marked "(you)"
+  const mine = (getVisitor()?.name ?? '').trim().split(/\s+/)[0] ?? ''
+  const at = joined && mine ? data.members.findIndex((m) => m.toLowerCase() === mine.toLowerCase()) : -1
+  const rows = joined && mine ? [mine, ...data.members.filter((_, i) => i !== at)] : data.members
+  const count = joined && mine && at < 0 ? data.count + 1 : data.count
   return (
     <section className="px-gutter pt-space-lg">
       <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">
-        {data.count} {data.count === 1 ? 'member' : 'members'}
+        {count} {count === 1 ? 'member' : 'members'}
       </h2>
       <ul className="flex flex-col gap-space-xs">
-        {data.members.map((m, i) => (
+        {rows.map((m, i) => (
           <li key={`${m}-${i}`} className="flex items-center gap-space-sm rounded-xl bg-surface-container px-space-sm py-2">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-primary/20 font-label-lg text-label-lg text-primary">{m.charAt(0).toUpperCase()}</span>
-            <span className="font-body-md text-body-md text-on-surface">{m}</span>
+            <span className="font-body-md text-body-md text-on-surface">
+              {m}
+              {joined && mine && i === 0 ? <span className="text-primary"> (you)</span> : null}
+            </span>
           </li>
         ))}
       </ul>

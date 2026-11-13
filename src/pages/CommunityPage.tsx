@@ -185,7 +185,7 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
         </div>
 
         {tab === 'chat' ? <ChatPanel kind={kind} slug={c.slug} joined={joined} /> : null}
-        {tab === 'members' ? <MembersPanel kind={kind} slug={c.slug} /> : null}
+        {tab === 'members' ? <MembersPanel kind={kind} slug={c.slug} name={c.name} joined={joined} /> : null}
         {tab === 'about' ? (
         <section className="px-gutter pt-space-lg">
           <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">{isOrg ? `Events by ${c.name}` : `Upcoming for ${c.name}`}</h2>
