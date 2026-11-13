@@ -427,3 +427,31 @@ export async function fetchMembers(kind: 'community' | 'organisation', slug: str
     return null
   }
 }
+
+export type ChatMessage = { id: string; name: string; text: string; at: string; mine: boolean }
+
+export async function fetchChat(kind: 'community' | 'organisation', slug: string, email: string): Promise<ChatMessage[] | null> {
+  try {
+    const qs = new URLSearchParams({ kind, slug, email })
+    const res = await fetch(`${CMS_URL}/api/community-joins/chat?${qs}`)
+    if (!res.ok) return null
+    const d = (await res.json()) as { messages?: unknown }
+    return Array.isArray(d.messages) ? (d.messages as ChatMessage[]) : []
+  } catch {
+    return null
+  }
+}
+
+export async function sendChat(kind: 'community' | 'organisation', slug: string, email: string, text: string): Promise<'ok' | 'slow' | 'fail'> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/community-joins/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, slug, email, text }),
+    })
+    if (res.ok) return 'ok'
+    return res.status === 429 ? 'slow' : 'fail'
+  } catch {
+    return 'fail'
+  }
+}

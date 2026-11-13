@@ -8,8 +8,8 @@ import { announceJoin, joinKey, useCommunities, useOrganisations } from '../lib/
 import { useEvents } from '../lib/EventsContext'
 import { isUpcoming } from '../lib/format'
 import { setCommunityTracks, useMusicBus } from '../lib/musicBus'
-import { fetchMembers } from '../lib/api'
-import { getVisitor, useJoined } from '../lib/storage'
+import { ChatPanel, MembersPanel } from '../components/CommunityTabs'
+import { useJoined } from '../lib/storage'
 
 export default function CommunityPage({ kind = 'community' }: { kind?: 'community' | 'organisation' }) {
   const { slug = '' } = useParams()
@@ -32,24 +32,7 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
   }, [songKey])
 
   const joined = c ? isJoined(joinKey(c)) : false
-  const [people, setPeople] = useState<{ count: number; members: string[] } | null>(null)
-  useEffect(() => {
-    const email = getVisitor()?.email
-    if (!c || !joined || !email) {
-      setPeople(null)
-      return
-    }
-    let stop = false
-    const t = setTimeout(() => {
-      fetchMembers(isOrg ? 'organisation' : 'community', c.slug, email).then((r) => {
-        if (!stop) setPeople(r)
-      })
-    }, 900)
-    return () => {
-      stop = true
-      clearTimeout(t)
-    }
-  }, [joined, isOrg, c?.slug])
+  const [tab, setTab] = useState<'about' | 'chat' | 'members'>('about')
 
   if (!c)
     return (
@@ -146,19 +129,9 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
               rel="noreferrer"
               className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border-[1.5px] border-primary/60 font-label-lg text-label-lg text-primary active:scale-[0.98]"
             >
-              <ChatIcon width={18} height={18} /> Group chat
+              <ChatIcon width={18} height={18} /> WhatsApp group
             </a>
-          ) : (
-            <div
-              aria-disabled="true"
-              className="flex h-12 flex-1 flex-col items-center justify-center rounded-lg border-[1.5px] border-outline-variant text-on-surface-variant"
-            >
-              <span className="flex items-center gap-2 font-label-lg text-label-lg">
-                <ChatIcon width={18} height={18} /> Group chat
-              </span>
-              <span className="font-label-sm text-label-sm">Opens soon</span>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {isOrg && (c.city || (c.links && Object.keys(c.links).length)) ? (
@@ -196,22 +169,24 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
           </div>
         ) : null}
 
-        {joined && people && people.count > 0 ? (
-          <section className="px-gutter pt-space-lg">
-            <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">
-              Members <span className="font-label-md text-label-md text-on-surface-variant">· {people.count}</span>
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {people.members.map((m, i) => (
-                <span key={`${m}-${i}`} className="flex items-center gap-2 rounded-full bg-surface-container py-1 pl-1 pr-3 font-label-md text-label-md text-on-surface">
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/20 text-primary">{m.charAt(0).toUpperCase()}</span>
-                  {m}
-                </span>
-              ))}
-            </div>
-          </section>
-        ) : null}
+        <div role="tablist" className="mx-gutter mt-space-md flex rounded-xl bg-surface-container p-1">
+          {([['about', isOrg ? 'Events' : 'Events'], ['chat', 'Chat'], ['members', 'Members']] as const).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className={`h-10 flex-1 rounded-lg font-label-lg text-label-lg transition-colors ${tab === id ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
+        {tab === 'chat' ? <ChatPanel kind={kind} slug={c.slug} joined={joined} /> : null}
+        {tab === 'members' ? <MembersPanel kind={kind} slug={c.slug} /> : null}
+        {tab === 'about' ? (
         <section className="px-gutter pt-space-lg">
           <h2 className="pb-space-sm font-headline-md text-headline-md text-on-surface">{isOrg ? `Events by ${c.name}` : `Upcoming for ${c.name}`}</h2>
           {upcoming.length ? (
@@ -226,6 +201,7 @@ export default function CommunityPage({ kind = 'community' }: { kind?: 'communit
             </Notice>
           )}
         </section>
+        ) : null}
       </main>
       <BottomNav />
     </>
