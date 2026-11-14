@@ -6,6 +6,7 @@ import { errorText, fetchOrder, myOrders, requestCode, signOutRemote, verifyCode
 import { configured } from '../lib/config'
 import { isUpcoming } from '../lib/format'
 import { Link } from 'react-router-dom'
+import { requestDeletion } from '../lib/api'
 import { getLocalOrders, getVisitor, setSession, signOutApp, useSession } from '../lib/storage'
 import type { PublicOrder } from '../lib/types'
 
@@ -154,6 +155,33 @@ function AccountCard() {
   )
 }
 
+/** Apple requires an in-app way to ask for the account to be deleted. */
+function DeleteAccount() {
+  const v = getVisitor()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  if (!v) return null
+  async function go() {
+    if (!v) return
+    if (!window.confirm('Delete your account? Your details, community memberships and chat messages will be erased by our team. This cannot be undone.')) return
+    setBusy(true)
+    setErr('')
+    const ok = await requestDeletion({ name: v.name, email: v.email })
+    setBusy(false)
+    if (!ok) return setErr('Could not send the request. Please check your connection and try again.')
+    window.alert('Your deletion request was sent. We will erase your data and confirm by email.')
+    signOutApp()
+  }
+  return (
+    <div className="mx-gutter mt-space-sm text-center">
+      <button type="button" onClick={go} disabled={busy} className="font-body-sm text-body-sm text-error underline disabled:opacity-50">
+        {busy ? 'Sending…' : 'Delete my account'}
+      </button>
+      {err ? <p role="alert" className="pt-1 font-body-sm text-body-sm text-error">{err}</p> : null}
+    </div>
+  )
+}
+
 export default function Tickets() {
   const session = useSession()
   const [orders, setOrders] = useState<PublicOrder[] | null>(null)
@@ -188,6 +216,7 @@ export default function Tickets() {
     return (
       <Page title="Tickets">
         <AccountCard />
+        <DeleteAccount />
         <Notice icon="settings" title="App not connected yet">Set the API address (see the README).</Notice>
       </Page>
     )
@@ -201,6 +230,7 @@ export default function Tickets() {
   return (
     <Page title="My Bookings">
       <AccountCard />
+      <DeleteAccount />
       <div className="flex flex-col gap-space-lg px-gutter pt-space-xs">
         <div className="flex flex-col gap-space-xs pt-space-md">
           <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Concierge Gate Access</span>

@@ -1,0 +1,49 @@
+# Builds the iPhone app on a cloud Mac and sends it to TestFlight.
+# One-time setup in Codemagic (codemagic.io): add this repository, then
+#   Teams -> Integrations -> App Store Connect: add an API key (name it exactly "Nordic Affairs ASC").
+# In App Store Connect the app record must exist with Bundle ID com.nordicaffairsmedia.tickets.
+workflows:
+  ios-testflight:
+    name: iPhone app to TestFlight
+    max_build_duration: 40
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Nordic Affairs ASC
+    environment:
+      node: 22
+      xcode: latest
+      vars:
+        BUNDLE_ID: com.nordicaffairsmedia.tickets
+        APP_STORE_APPLE_ID: "REPLACE_WITH_APPLE_ID_NUMBER_OF_THE_APP"   # App Store Connect -> the app -> App Information -> Apple ID (digits only)
+        VITE_CMS_URL: https://nordicaffairsmedia.com
+        VITE_API_URL: https://nordic-affairs-media-backend.onrender.com
+        VITE_SITE_URL: https://nordicaffairsmedia.com
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.nordicaffairsmedia.tickets
+    scripts:
+      - name: Install packages and build the web app
+        script: |
+          npm ci
+          npm run build
+      - name: Sync into the iOS project
+        script: |
+          npx cap sync ios
+      - name: Set the build number
+        script: |
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          BUILD_NUMBER=$((LATEST + 1))
+          echo "Build number $BUILD_NUMBER"
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/" ios/App/App.xcodeproj/project.pbxproj
+      - name: Apply the signing profile
+        script: |
+          xcode-project use-profiles --project ios/App/App.xcodeproj
+      - name: Build the app (.ipa)
+        script: |
+          xcode-project build-ipa --project ios/App/App.xcodeproj --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

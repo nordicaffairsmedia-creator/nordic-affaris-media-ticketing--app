@@ -105,6 +105,7 @@ export function signOutApp() {
   write(ORDERS_KEY, null)
   write('nam.communities', null)
   window.dispatchEvent(new Event('nam-communities'))
+  write('nam.blocked', null)
   try {
     sessionStorage.removeItem('nam.welcomed')
   } catch {
@@ -161,4 +162,25 @@ export function useJoined() {
     return !has
   }, [])
   return { joined, isJoined: (slug: string) => joined.includes(slug), toggle }
+}
+
+// ---------------------------------------------------------------- people the user blocked in chats (anonymous sender ids)
+const BLOCKED_KEY = 'nam.blocked'
+export const getBlocked = (): string[] => {
+  try {
+    const v = JSON.parse(read(BLOCKED_KEY) ?? '[]')
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []
+  } catch {
+    return []
+  }
+}
+export function blockSender(by: string) {
+  if (!by) return
+  const list = getBlocked()
+  if (!list.includes(by)) write(BLOCKED_KEY, JSON.stringify([...list, by]))
+  window.dispatchEvent(new Event('nam-blocked'))
+}
+export function clearBlocked() {
+  write(BLOCKED_KEY, null)
+  window.dispatchEvent(new Event('nam-blocked'))
 }

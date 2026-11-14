@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { fetchChat, fetchMembers, postJoin, sendChat, type ChatMessage } from '../lib/api'
-import { getVisitor } from '../lib/storage'
+import { fetchChat, fetchMembers, postJoin, reportMessage, sendChat, type ChatMessage } from '../lib/api'
+import { blockSender, getBlocked, getVisitor } from '../lib/storage'
 import { Notice } from './ui'
 
 type Kind = 'community' | 'organisation'
@@ -77,6 +77,15 @@ export function ChatPanel({ kind, slug, joined }: { kind: Kind; slug: string; jo
   const [busy, setBusy] = useState(false)
   const box = useRef<HTMLDivElement>(null)
   const last = useRef('')
+  const [blocked, setBlocked] = useState<string[]>(getBlocked)
+  const [menu, setMenu] = useState('')
+  const [note, setNote] = useState('')
+  useEffect(() => {
+    const f = () => setBlocked(getBlocked())
+    window.addEventListener('nam-blocked', f)
+    return () => window.removeEventListener('nam-blocked', f)
+  }, [])
+  const shown = msgs.filter((m) => m.mine || !blocked.includes(m.by))
 
   useEffect(() => {
     if (!joined || !email) return
@@ -108,6 +117,21 @@ export function ChatPanel({ kind, slug, joined }: { kind: Kind; slug: string; jo
       </div>
     )
 
+  async function report(m: ChatMessage) {
+    setMenu('')
+    const ok = await reportMessage(kind, slug, email, m.id, '')
+    setNote(ok ? 'Thank you. We will review this message.' : 'Could not send the report. Please try again.')
+    setTimeout(() => setNote(''), 5000)
+  }
+  function block(m: ChatMessage) {
+    setMenu('')
+    if (window.confirm(`Block ${m.name}? You will no longer see their messages.`)) {
+      blockSender(m.by)
+      setNote(`${m.name} is blocked.`)
+      setTimeout(() => setNote(''), 5000)
+    }
+  }
+
   async function send(e: FormEvent) {
     e.preventDefault()
     const t = text.trim()
@@ -125,19 +149,36 @@ export function ChatPanel({ kind, slug, joined }: { kind: Kind; slug: string; jo
 
   return (
     <section className="px-gutter pt-space-md">
+      <p className="pb-space-xs font-body-sm text-body-sm text-on-surface-variant">
+        Be respectful. Abusive or unlawful messages are not allowed and are removed. Tap ⋯ on a message to report it or block the person.
+      </p>
       <div ref={box} className="flex h-[48vh] flex-col gap-2 overflow-y-auto rounded-2xl bg-surface-container-low p-space-sm" aria-live="polite">
-        {msgs.length === 0 ? (
+        {shown.length === 0 ? (
           <p className="m-auto text-center font-body-sm text-body-sm text-on-surface-variant">No messages yet. Say hello!</p>
         ) : (
-          msgs.map((m) => (
+          shown.map((m) => (
             <div key={m.id} className={`max-w-[82%] rounded-2xl px-3 py-2 ${m.mine ? 'self-end bg-primary text-on-primary' : 'self-start bg-surface-container text-on-surface'}`}>
-              {!m.mine ? <p className="font-label-sm text-label-sm text-secondary">{m.name}</p> : null}
+              {!m.mine ? (
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-label-sm text-label-sm text-secondary">{m.name}</p>
+                  <button type="button" aria-label={`Report or block ${m.name}`} onClick={() => setMenu(menu === m.id ? '' : m.id)} className="px-1 font-label-lg text-label-lg leading-none text-on-surface-variant">
+                    ⋯
+                  </button>
+                </div>
+              ) : null}
+              {menu === m.id ? (
+                <div className="mb-1 flex gap-2">
+                  <button type="button" onClick={() => void report(m)} className="rounded-full border border-error/60 px-3 py-1 font-label-sm text-label-sm text-error">Report</button>
+                  <button type="button" onClick={() => block(m)} className="rounded-full border border-outline-variant px-3 py-1 font-label-sm text-label-sm text-on-surface">Block</button>
+                </div>
+              ) : null}
               <p className="whitespace-pre-wrap break-words font-body-md text-body-md">{m.text}</p>
               <p className={`text-right font-label-sm text-label-sm ${m.mine ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>{time(m.at)}</p>
             </div>
           ))
         )}
       </div>
+      {note ? <p role="status" className="pt-1 font-body-sm text-body-sm text-primary">{note}</p> : null}
       {err ? <p role="alert" className="pt-1 font-body-sm text-body-sm text-error">{err}</p> : null}
       <form onSubmit={send} className="flex gap-space-xs pt-space-sm">
         <input

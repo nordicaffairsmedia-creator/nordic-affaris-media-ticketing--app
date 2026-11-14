@@ -242,7 +242,8 @@ export const startCheckout = (body: {
       locale: 'en',
       acceptTerms: true,
       // Stripe sends the buyer back to this app (the API only honours origins it allows).
-      webOrigin: window.location.origin,
+      // inside the iPhone app the page address is capacitor://localhost, which Stripe cannot return to: use the web app's address
+      webOrigin: window.location.protocol === 'capacitor:' ? 'https://nordic-affairs-media-ticketing-app.vercel.app' : window.location.origin,
     }),
   })
 
@@ -428,7 +429,7 @@ export async function fetchMembers(kind: 'community' | 'organisation', slug: str
   }
 }
 
-export type ChatMessage = { id: string; name: string; text: string; at: string; mine: boolean }
+export type ChatMessage = { id: string; name: string; text: string; at: string; mine: boolean; by: string }
 
 export async function fetchChat(kind: 'community' | 'organisation', slug: string, email: string): Promise<ChatMessage[] | null> {
   try {
@@ -453,5 +454,33 @@ export async function sendChat(kind: 'community' | 'organisation', slug: string,
     return res.status === 429 ? 'slow' : 'fail'
   } catch {
     return 'fail'
+  }
+}
+
+/** Report a chat message to the Nordic Affairs Media team. */
+export async function reportMessage(kind: 'community' | 'organisation', slug: string, email: string, messageId: string, reason: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/community-joins/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, slug, email, messageId, reason }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+/** Asks the team to delete this person's account and data (staff process it in the admin). */
+export async function requestDeletion(v: { name: string; email: string }): Promise<boolean> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/deletion-requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: v.name, email: v.email }),
+    })
+    return res.ok
+  } catch {
+    return false
   }
 }
